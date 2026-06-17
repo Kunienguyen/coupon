@@ -1,1 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Gacha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+    <header>
+        <h1>🎁 Coupon Gacha</h1>
+        <p>Danh sách coupon hiện có</p>
+    </header>
+
+    <main>
+
+        <div id="couponContainer"></div>
+
+    </main>
+
+    <div id="cooldownBox">
+        <span id="cooldownText">
+            Free Spin Ready
+        </span>
+    </div>
+
+    <button id="floatingBtn">
+        🎁
+    </button>
+
+    <div id="spinModal" class="modal hidden">
+        <div class="modal-content">
+
+            <h2>Lucky Spin</h2>
+
+            <div id="spinAnimation">
+                🎰
+            </div>
+
+            <button id="startSpinBtn">
+                QUAY
+            </button>
+
+            <button id="closeSpinBtn">
+                Đóng
+            </button>
+
+        </div>
+    </div>
+
+    <div id="resultModal" class="modal hidden">
+        <div class="modal-content">
+
+            <button class="closeBtn" id="closeResultBtn">
+                ×
+            </button>
+
+            <h2>🎉 Chúc mừng</h2>
+
+            <h3 id="resultCoupon">
+                Coupon
+            </h3>
+
+            <p id="resultExpire">
+                Expires in 3 days
+            </p>
+
+            <button id="spinAgainBtn">
+                Quay thêm
+            </button>
+
+        </div>
+    </div>
+
+    <div id="couponModal" class="modal hidden">
+        <div class="modal-content">
+
+            <h2 id="couponName">
+                Coupon
+            </h2>
+
+            <div class="actionButtons">
+
+                <button id="useCouponBtn">
+                    USE
+                </button>
+
+                <button id="cancelCouponBtn">
+                    CANCEL
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div id="paymentModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <button id="backPaymentBtn" class="backBtn">
+                ←
+            </button>
+
+            <h2>Mua thêm lượt quay</h2>
+
+            <img
+                src="qr.png"
+                alt="QR Payment"
+                class="qrImage"
+            >
+
+            <h3>14.000đ = +1 Spin</h3>
+
+            <p>
+                Sau khi chuyển khoản hãy liên hệ chủ web.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div id="skipModal" class="modal hidden">
+
+        <div class="modal-content">
+
+            <h2>Skip thời gian chờ?</h2>
+
+            <p>7.000đ = 1 Skip</p>
+
+            <button id="closeSkipBtn">
+                Đóng
+            </button>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
