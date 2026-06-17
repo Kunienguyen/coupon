@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:#f5f7fb;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    max-width:450px;
+    margin:auto;
+    box-shadow:0 6px 20px rgba(0,0,0,.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.add{
+    background:#22c55e;
+    color:white;
+}
+
+.reset{
+    background:#ef4444;
+    color:white;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    margin-top:10px;
+}
+
+.hidden{
+    display:none;
+}
+</style>
+
+</head>
+<body>
+
+<div class="card" id="loginBox">
+
+    <h1>🔒 Admin</h1>
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Mật khẩu"
+    >
+
+    <button class="add" onclick="login()">
+        Đăng nhập
+    </button>
+
+</div>
+
+<div class="card hidden" id="adminPanel">
+
+    <h1>🎁 Quản lý Spin</h1>
+
+    <h2 id="spinCount">
+        Bonus Spins: 0
+    </h2>
+
+    <button class="add" onclick="addSpin(1)">
+        +1 Spin
+    </button>
+
+    <button class="add" onclick="addSpin(5)">
+        +5 Spins
+    </button>
+
+    <button class="reset" onclick="resetCooldown()">
+        Reset Cooldown
+    </button>
+
+</div>
+
+<script>
+
+const PASSWORD = "CHANGE_ME";
+
+function loadData(){
+
+    return JSON.parse(
+        localStorage.getItem("couponData")
+    ) || {
+        coupons: [],
+        bonusSpins: 0,
+        lastSpin: 0
+    };
+
+}
+
+function saveData(data){
+
+    localStorage.setItem(
+        "couponData",
+        JSON.stringify(data)
+    );
+
+}
+
+function updateView(){
+
+    const data = loadData();
+
+    document.getElementById(
+        "spinCount"
+    ).textContent =
+    "Bonus Spins: " + data.bonusSpins;
+
+}
+
+function login(){
+
+    const pass =
+        document.getElementById(
+            "password"
+        ).value;
+
+    if(pass !== PASSWORD){
+
+        alert("Sai mật khẩu");
+
+        return;
+    }
+
+    document
+        .getElementById("loginBox")
+        .classList.add("hidden");
+
+    document
+        .getElementById("adminPanel")
+        .classList.remove("hidden");
+
+    updateView();
+
+}
+
+function addSpin(amount){
+
+    const data = loadData();
+
+    data.bonusSpins += amount;
+
+    saveData(data);
+
+    updateView();
+
+    alert(
+        "Đã cộng " +
+        amount +
+        " spin"
+    );
+
+}
+
+function resetCooldown(){
+
+    const data = loadData();
+
+    data.lastSpin = 0;
+
+    saveData(data);
+
+    alert(
+        "Đã reset cooldown"
+    );
+
+}
+
+</script>
+
+</body>
+</html>
