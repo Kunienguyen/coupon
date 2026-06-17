@@ -1,0 +1,212 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+    background:#f5f7fb;
+    color:#222;
+    min-height:100vh;
+    padding-bottom:100px;
+}
+
+header{
+    text-align:center;
+    padding:25px 15px;
+}
+
+header h1{
+    font-size:28px;
+    margin-bottom:8px;
+}
+
+header p{
+    color:#666;
+}
+
+#couponContainer{
+    width:92%;
+    max-width:800px;
+    margin:auto;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.coupon{
+    border-radius:18px;
+    padding:18px;
+    color:white;
+    cursor:pointer;
+    transition:.25s;
+    box-shadow:0 6px 18px rgba(0,0,0,.12);
+}
+
+.coupon:hover{
+    transform:translateY(-2px);
+}
+
+.coupon h3{
+    margin-bottom:8px;
+}
+
+.coupon p{
+    font-size:14px;
+}
+
+.green{
+    background:#22c55e;
+}
+
+.yellow{
+    background:#eab308;
+}
+
+.red{
+    background:#ef4444;
+}
+
+.gray{
+    background:#6b7280;
+}
+
+#floatingBtn{
+    position:fixed;
+    right:20px;
+    bottom:90px;
+    width:65px;
+    height:65px;
+    border:none;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    font-size:28px;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+
+#cooldownBox{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:white;
+    padding:14px;
+    text-align:center;
+    box-shadow:0 -2px 10px rgba(0,0,0,.08);
+    cursor:pointer;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.hidden{
+    display:none;
+}
+
+.modal-content{
+    background:white;
+    width:90%;
+    max-width:420px;
+    border-radius:20px;
+    padding:25px;
+    text-align:center;
+    position:relative;
+}
+
+.closeBtn{
+    position:absolute;
+    right:15px;
+    top:10px;
+    border:none;
+    background:none;
+    font-size:28px;
+    cursor:pointer;
+}
+
+#spinAnimation{
+    font-size:70px;
+    margin:25px 0;
+}
+
+#startSpinBtn,
+#closeSpinBtn,
+#spinAgainBtn,
+#useCouponBtn,
+#cancelCouponBtn,
+#closeSkipBtn{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    margin-top:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#startSpinBtn{
+    background:#2563eb;
+    color:white;
+}
+
+#spinAgainBtn{
+    background:#22c55e;
+    color:white;
+}
+
+#closeSpinBtn,
+#cancelCouponBtn,
+#closeSkipBtn{
+    background:#e5e7eb;
+}
+
+#useCouponBtn{
+    background:#22c55e;
+    color:white;
+}
+
+.actionButtons{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.qrImage{
+    width:250px;
+    max-width:100%;
+    margin:15px auto;
+    display:block;
+    border-radius:12px;
+}
+
+.backBtn{
+    position:absolute;
+    left:12px;
+    top:12px;
+    border:none;
+    background:none;
+    font-size:24px;
+    cursor:pointer;
+}
+
+@media(max-width:500px){
+
+    .coupon h3{
+        font-size:18px;
+    }
+
+    #floatingBtn{
+        width:60px;
+        height:60px;
+    }
+
+}
