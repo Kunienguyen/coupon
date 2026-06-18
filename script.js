@@ -29,7 +29,6 @@ localStorage.setItem("couponData", JSON.stringify(data));
 
 function formatTime(ms) {
 
-```
 let total = Math.floor(ms / 1000);
 
 const d = Math.floor(total / 86400);
@@ -41,13 +40,11 @@ total %= 3600;
 const m = Math.floor(total / 60);
 
 return `⏳ ${d}d ${h}h ${m}m`;
-```
 
 }
 
 function getCouponColor(coupon) {
 
-```
 if (coupon.status === "used")
     return "gray";
 
@@ -61,13 +58,11 @@ if (left <= WARNING_TIME)
     return "yellow";
 
 return "green";
-```
 
 }
 
 function getCouponText(coupon) {
 
-```
 if (coupon.status === "used")
     return "⚫ USED";
 
@@ -78,13 +73,11 @@ if (left <= 0)
     return "🔴 EXPIRED";
 
 return formatTime(left);
-```
 
 }
 
 function renderCoupons() {
 
-```
 const data = loadData();
 
 const container =
@@ -135,13 +128,11 @@ data.coupons.forEach(
     container.appendChild(card);
 
 });
-```
 
 }
 
 function canSpin() {
 
-```
 const data = loadData();
 
 if (data.bonusSpins > 0)
@@ -151,13 +142,11 @@ return (
     Date.now() - data.lastSpin
     >= FREE_SPIN_TIME
 );
-```
 
 }
 
 function startSpin() {
 
-```
 if (!canSpin()) {
 
     alert(
@@ -267,13 +256,11 @@ setTimeout(() => {
     renderCoupons();
 
 }, 5000);
-```
 
 }
 
 function updateCooldown() {
 
-```
 const data = loadData();
 
 const box =
@@ -330,7 +317,6 @@ const s =
 
 box.textContent =
     `⏳ ${h}h ${m}m ${s}s`;
-```
 
 }
 
@@ -338,7 +324,6 @@ document.addEventListener(
 "DOMContentLoaded",
 () => {
 
-```
 renderCoupons();
 
 updateCooldown();
@@ -536,9 +521,6 @@ document
         .add("hidden");
 
 };
-```
 
 });
 
-```
-```
