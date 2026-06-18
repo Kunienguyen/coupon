@@ -4,27 +4,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Coupon Gacha V2</title>
+<title>Coupon Gacha V3</title>
+
 <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
 <div id="matrix-bg"></div>
 
+<canvas id="trailCanvas"></canvas>
+
 <header>
-<h1>🎁 Coupon Gacha</h1>
-<p>Daily Family Coupon</p>
+
+<h1>🎁 Coupon Gacha V3</h1>
+
+<p>Daily Family Coupon System</p>
+
+<div id="usageInfo">
+🎟️ Used Today: 0 / 5
+</div>
+
+<div id="statsBox">
+
+<div class="statCard">
+🏆 Total: <span id="totalCoupons">0</span>
+</div>
+
+<div class="statCard">
+🟢 Active: <span id="activeCoupons">0</span>
+</div>
+
+<div class="statCard">
+⚫ Used: <span id="usedCoupons">0</span>
+</div>
+
+<div class="statCard">
+🔴 Expired: <span id="expiredCoupons">0</span>
+</div>
+
+</div>
+
 </header>
 
 <main>
+
 <div id="couponContainer"></div>
+
 </main>
 
 <div id="cooldownBox">
+
 <span id="cooldownText">
-Free Spin Ready
+
+🎁 Free Spin Ready
+
 </span>
+
 </div>
 
 <button id="floatingBtn">
@@ -32,12 +69,15 @@ Free Spin Ready
 </button>
 
 <div id="spinModal" class="modal hidden">
+
 <div class="modal-content">
 
 <h2>Lucky Spin</h2>
 
 <div id="spinAnimation">
+
 🎁
+
 </div>
 
 <button id="startSpinBtn">
@@ -45,13 +85,15 @@ QUAY
 </button>
 
 <button id="closeSpinBtn">
-Đóng
+ĐÓNG
 </button>
 
 </div>
+
 </div>
 
 <div id="resultModal" class="modal hidden">
+
 <div class="modal-content">
 
 <button class="closeBtn" id="closeResultBtn">
@@ -69,10 +111,11 @@ Expires in 3 days
 </p>
 
 <button id="spinAgainBtn">
-Quay thêm
+Chọn Coupon
 </button>
 
 </div>
+
 </div>
 
 <div id="couponModal" class="modal hidden">
@@ -107,17 +150,17 @@ CANCEL
 ←
 </button>
 
-<h2>Mua thêm lượt quay</h2>
+<h2>Chọn Coupon Theo Ý Thích</h2>
 
 <img
 src="qr.png"
 alt="QR"
 class="qrImage">
 
-<h3>14.000đ = +1 Spin</h3>
+<h3>14.000đ = Chọn 1 Coupon</h3>
 
 <p>
-Sau khi chuyển khoản hãy liên hệ chủ web.
+Sau khi chuyển khoản hãy liên hệ Admin để nhận coupon mong muốn.
 </p>
 
 </div>
@@ -130,7 +173,16 @@ Sau khi chuyển khoản hãy liên hệ chủ web.
 
 <h2>Skip thời gian chờ?</h2>
 
-<p>7.000đ = 1 Skip</p>
+<img
+src="qr.png"
+alt="QR"
+class="qrImage">
+
+<h3>7.000đ = 1 Skip</h3>
+
+<p>
+Sau khi chuyển khoản hãy liên hệ Admin.
+</p>
 
 <button id="closeSkipBtn">
 Đóng
@@ -139,6 +191,20 @@ Sau khi chuyển khoản hãy liên hệ chủ web.
 </div>
 
 </div>
+
+<div id="usedPopup" class="usedPopup hidden">
+
+✔ Coupon Used
+
+</div>
+
+<audio id="clickSound">
+<source src="click.mp3" type="audio/mpeg">
+</audio>
+
+<audio id="winSound">
+<source src="win.mp3" type="audio/mpeg">
+</audio>
 
 <script src="script.js"></script>
 
