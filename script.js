@@ -11,516 +11,918 @@ const COUPONS = [
 const EXPIRE_TIME = 72 * 60 * 60 * 1000;
 const FREE_SPIN_TIME = 24 * 60 * 60 * 1000;
 const WARNING_TIME = 5 * 60 * 60 * 1000;
+const DAILY_USE_LIMIT = 5;
 
 let selectedCouponIndex = null;
 let holdTimer;
 
-function loadData() {
-return JSON.parse(localStorage.getItem("couponData")) || {
+function loadData(){
+
+return JSON.parse(
+localStorage.getItem("couponData")
+) || {
+
 coupons: [],
 bonusSpins: 0,
 lastSpin: 0
+
 };
+
 }
 
-function saveData(data) {
-localStorage.setItem("couponData", JSON.stringify(data));
+function saveData(data){
+
+localStorage.setItem(
+"couponData",
+JSON.stringify(data)
+);
+
 }
 
-function formatTime(ms) {
+function formatTime(ms){
 
-let total = Math.floor(ms / 1000);
+let total =
+Math.floor(ms / 1000);
 
-const d = Math.floor(total / 86400);
+const d =
+Math.floor(total / 86400);
+
 total %= 86400;
 
-const h = Math.floor(total / 3600);
+const h =
+Math.floor(total / 3600);
+
 total %= 3600;
 
-const m = Math.floor(total / 60);
+const m =
+Math.floor(total / 60);
 
-return `⏳ ${d}d ${h}h ${m}m`;
+if(d > 0){
+
+return `⏳ ${d} ngày ${h} giờ`;
 
 }
 
-function getCouponColor(coupon) {
+if(h > 0){
 
-if (coupon.status === "used")
-    return "gray";
+return `⏳ ${h} giờ ${m} phút`;
+
+}
+
+return `⚠️ ${m} phút`;
+
+}
+
+function usedCouponsLast24h(){
+
+const data =
+loadData();
+
+const now =
+Date.now();
+
+return data.coupons.filter(c =>
+
+c.usedAt &&
+now - c.usedAt <
+24 * 60 * 60 * 1000
+
+).length;
+
+}
+
+function getCouponColor(coupon){
+
+if(
+coupon.status === "used"
+){
+
+return "gray";
+
+}
 
 const left =
-    coupon.expireAt - Date.now();
+coupon.expireAt -
+Date.now();
 
-if (left <= 0)
-    return "red";
+if(left <= 0){
 
-if (left <= WARNING_TIME)
-    return "yellow";
+return "red";
+
+}
+
+if(
+left <= WARNING_TIME
+){
+
+return "yellow";
+
+}
 
 return "green";
 
 }
 
-function getCouponText(coupon) {
+function getCouponText(coupon){
 
-if (coupon.status === "used")
-    return "⚫ USED";
+if(
+coupon.status === "used"
+){
+
+return "⚫ USED";
+
+}
 
 const left =
-    coupon.expireAt - Date.now();
+coupon.expireAt -
+Date.now();
 
-if (left <= 0)
-    return "🔴 EXPIRED";
+if(left <= 0){
+
+return "🔴 EXPIRED";
+
+}
 
 return formatTime(left);
 
 }
 
-function renderCoupons() {
+function updateUsageInfo(){
 
-const data = loadData();
+const used =
+usedCouponsLast24h();
+
+document
+.getElementById(
+"usageInfo"
+)
+.textContent =
+
+`🎟️ Used Today: ${used} / ${DAILY_USE_LIMIT}`;
+
+}
+
+function updateStats(){
+
+const data =
+loadData();
+
+const total =
+data.coupons.length;
+
+const active =
+data.coupons.filter(c =>
+
+c.status !== "used" &&
+c.expireAt > Date.now()
+
+).length;
+
+const used =
+data.coupons.filter(c =>
+
+c.status === "used"
+
+).length;
+
+const expired =
+data.coupons.filter(c =>
+
+c.status !== "used" &&
+c.expireAt <= Date.now()
+
+).length;
+
+document
+.getElementById(
+"totalCoupons"
+)
+.textContent = total;
+
+document
+.getElementById(
+"activeCoupons"
+)
+.textContent = active;
+
+document
+.getElementById(
+"usedCoupons"
+)
+.textContent = used;
+
+document
+.getElementById(
+"expiredCoupons"
+)
+.textContent = expired;
+
+}
+function renderCoupons(){
+
+const data =
+loadData();
 
 const container =
-    document.getElementById(
-        "couponContainer"
-    );
+document.getElementById(
+"couponContainer"
+);
 
 container.innerHTML = "";
 
 data.coupons.forEach(
-    (coupon, index) => {
+(coupon,index)=>{
 
-    const card =
-        document.createElement("div");
+const card =
+document.createElement("div");
 
-    card.className =
-        `coupon ${getCouponColor(coupon)}`;
+card.className =
+`coupon ${getCouponColor(coupon)}`;
 
-    card.innerHTML = `
-        <h3>${coupon.name}</h3>
-        <p>${getCouponText(coupon)}</p>
-    `;
+card.innerHTML = `
 
-    card.onclick = () => {
+<h3>${coupon.name}</h3>
+<p>${getCouponText(coupon)}</p>
+`;
 
-        if (
-            coupon.status === "used" ||
-            coupon.expireAt <= Date.now()
-        ) return;
+card.onclick = ()=>{
 
-        selectedCouponIndex = index;
+if(
+coupon.status === "used" ||
+coupon.expireAt <= Date.now()
+){
+return;
+}
 
-        document
-            .getElementById(
-                "couponName"
-            ).textContent =
-            coupon.name;
+selectedCouponIndex =
+index;
 
-        document
-            .getElementById(
-                "couponModal"
-            )
-            .classList
-            .remove("hidden");
+document
+.getElementById(
+"couponName"
+)
+.textContent =
+coupon.name;
 
-    };
+document
+.getElementById(
+"couponModal"
+)
+.classList
+.remove("hidden");
 
-    container.appendChild(card);
+};
+
+container.appendChild(card);
 
 });
 
 }
 
-function canSpin() {
+function canSpin(){
 
-const data = loadData();
+const data =
+loadData();
 
-if (data.bonusSpins > 0)
-    return true;
+if(
+data.bonusSpins > 0
+){
+return true;
+}
 
 return (
-    Date.now() - data.lastSpin
-    >= FREE_SPIN_TIME
-);
+Date.now() -
+data.lastSpin
+
+> =
+> FREE_SPIN_TIME
+> );
 
 }
 
-function startSpin() {
+function startSpin(){
 
-if (!canSpin()) {
+if(!canSpin()){
 
-    alert(
-        "Chưa đến thời gian quay."
-    );
+alert(
+"Chưa đến thời gian quay."
+);
 
-    return;
+return;
 
 }
 
 const spinAnim =
-    document.getElementById(
-        "spinAnimation"
-    );
+document.getElementById(
+"spinAnimation"
+);
 
 spinAnim.innerHTML = `
-    <div>🎁</div>
-    <div style="
-    font-size:18px;
-    margin-top:15px;">
-    SPINNING...
-    </div>
+
+<div>🎁</div>
+<div style="
+font-size:18px;
+margin-top:10px;
+">
+SPINNING...
+</div>
 `;
 
 document
-    .getElementById(
-        "startSpinBtn"
-    )
-    .disabled = true;
+.getElementById(
+"startSpinBtn"
+)
+.disabled = true;
 
-setTimeout(() => {
+setTimeout(()=>{
 
-    const result =
-        COUPONS[
-            Math.floor(
-                Math.random()
-                * COUPONS.length
-            )
-        ];
+const result =
+COUPONS[
+Math.floor(
+Math.random()
+*
+COUPONS.length
+)
+];
 
-    const data = loadData();
+const data =
+loadData();
 
-    if (
-        data.bonusSpins > 0
-    ) {
+if(
+data.bonusSpins > 0
+){
 
-        data.bonusSpins--;
+data.bonusSpins--;
 
-    } else {
+}else{
 
-        data.lastSpin =
-            Date.now();
-
-    }
-
-    data.coupons.unshift({
-
-        name: result,
-
-        status: "active",
-
-        createdAt:
-            Date.now(),
-
-        expireAt:
-            Date.now()
-            + EXPIRE_TIME
-
-    });
-
-    saveData(data);
-
-    document
-        .getElementById(
-            "spinModal"
-        )
-        .classList
-        .add("hidden");
-
-    document
-        .getElementById(
-            "resultModal"
-        )
-        .classList
-        .remove("hidden");
-
-    document
-        .getElementById(
-            "resultCoupon"
-        )
-        .textContent =
-        result;
-
-    document
-        .getElementById(
-            "resultExpire"
-        )
-        .textContent =
-        "Expires in 3 days";
-
-    document
-        .getElementById(
-            "startSpinBtn"
-        )
-        .disabled = false;
-
-    renderCoupons();
-
-}, 5000);
+data.lastSpin =
+Date.now();
 
 }
 
-function updateCooldown() {
+data.coupons.unshift({
 
-const data = loadData();
+name:result,
+
+status:"active",
+
+createdAt:
+Date.now(),
+
+expireAt:
+Date.now()
++
+EXPIRE_TIME
+
+});
+
+saveData(data);
+
+const win =
+document.getElementById(
+"winSound"
+);
+
+if(win){
+
+win.currentTime = 0;
+
+win.play()
+.catch(()=>{});
+
+}
+
+document
+.getElementById(
+"spinModal"
+)
+.classList
+.add("hidden");
+
+document
+.getElementById(
+"resultModal"
+)
+.classList
+.remove("hidden");
+
+document
+.getElementById(
+"resultCoupon"
+)
+.textContent =
+result;
+
+document
+.getElementById(
+"resultExpire"
+)
+.textContent =
+"Expires in 3 days";
+
+document
+.getElementById(
+"startSpinBtn"
+)
+.disabled = false;
+
+renderCoupons();
+
+updateStats();
+
+},5000);
+
+}
+
+function updateCooldown(){
+
+const data =
+loadData();
 
 const box =
-    document.getElementById(
-        "cooldownText"
-    );
+document.getElementById(
+"cooldownText"
+);
 
-if (
-    data.bonusSpins > 0
-) {
+if(
+data.bonusSpins > 0
+){
 
-    box.textContent =
-        `🎁 Bonus Spins: ${data.bonusSpins}`;
+box.textContent =
+`🎁 Bonus Spins: ${data.bonusSpins}`;
 
-    return;
+return;
 
 }
 
 const left =
-    FREE_SPIN_TIME -
-    (
-        Date.now()
-        - data.lastSpin
-    );
+FREE_SPIN_TIME -
+(
+Date.now()
+----------
 
-if (left <= 0) {
+data.lastSpin
+);
 
-    box.textContent =
-        "🎁 Free Spin Ready";
+if(left <= 0){
 
-    return;
+box.textContent =
+"🎁 Free Spin Ready";
+
+return;
 
 }
 
 let total =
-    Math.floor(
-        left / 1000
-    );
+Math.floor(
+left/1000
+);
 
 const h =
-    Math.floor(
-        total / 3600
-    );
+Math.floor(
+total/3600
+);
 
-total %= 3600;
+total%=3600;
 
 const m =
-    Math.floor(
-        total / 60
-    );
+Math.floor(
+total/60
+);
 
 const s =
-    total % 60;
+total%60;
 
 box.textContent =
-    `⏳ ${h}h ${m}m ${s}s`;
+`⏳ ${h}h ${m}m ${s}s`;
 
 }
 
+function showUsedPopup(){
+
+const popup =
+document.getElementById(
+"usedPopup"
+);
+
+popup.classList.remove(
+"hidden"
+);
+
+setTimeout(()=>{
+
+popup.classList.add(
+"hidden"
+);
+
+},1200);
+
+}
 document.addEventListener(
 "DOMContentLoaded",
-() => {
+()=>{
 
 renderCoupons();
 
 updateCooldown();
 
-setInterval(() => {
+updateUsageInfo();
 
-    renderCoupons();
+updateStats();
 
-    updateCooldown();
+setInterval(()=>{
 
-}, 1000);
+renderCoupons();
+
+updateCooldown();
+
+updateUsageInfo();
+
+updateStats();
+
+},1000);
+
+const clickSound =
+document.getElementById(
+"clickSound"
+);
+
+document
+.querySelectorAll("button")
+.forEach(btn=>{
+
+btn.addEventListener(
+"click",
+()=>{
+
+if(clickSound){
+
+clickSound.currentTime=0;
+
+clickSound.play()
+.catch(()=>{});
+
+}
+
+});
+
+});
 
 const btn =
-    document.getElementById(
-        "floatingBtn"
-    );
+document.getElementById(
+"floatingBtn"
+);
 
-btn.onclick = () => {
+btn.onclick=()=>{
 
-    document
-        .getElementById(
-            "spinModal"
-        )
-        .classList
-        .remove("hidden");
+document
+.getElementById(
+"spinModal"
+)
+.classList
+.remove("hidden");
 
 };
 
 btn.addEventListener(
-    "touchstart",
-    () => {
+"touchstart",
+()=>{
 
-    holdTimer =
-        setTimeout(
-            () => {
+holdTimer =
+setTimeout(()=>{
 
-        location.href =
-            "admin.html";
+location.href =
+"admin.html";
 
-    }, 3000);
+},3000);
 
 });
 
 btn.addEventListener(
-    "touchend",
-    () => {
+"touchend",
+()=>{
 
-    clearTimeout(
-        holdTimer
-    );
-
-});
-
-document
-    .getElementById(
-        "closeSpinBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "spinModal"
-        )
-        .classList
-        .add("hidden");
-
-};
-
-document
-    .getElementById(
-        "startSpinBtn"
-    )
-    .onclick =
-    startSpin;
-
-document
-    .getElementById(
-        "closeResultBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "resultModal"
-        )
-        .classList
-        .add("hidden");
-
-};
-
-document
-    .getElementById(
-        "spinAgainBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "resultModal"
-        )
-        .classList
-        .add("hidden");
-
-    document
-        .getElementById(
-            "paymentModal"
-        )
-        .classList
-        .remove("hidden");
-
-};
-
-document
-    .getElementById(
-        "backPaymentBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "paymentModal"
-        )
-        .classList
-        .add("hidden");
-
-};
-
-document
-    .getElementById(
-        "cancelCouponBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "couponModal"
-        )
-        .classList
-        .add("hidden");
-
-};
-
-document
-    .getElementById(
-        "useCouponBtn"
-    )
-    .onclick = () => {
-
-    const data =
-        loadData();
-
-    data.coupons[
-        selectedCouponIndex
-    ].status = "used";
-
-    saveData(data);
-
-    document
-        .getElementById(
-            "couponModal"
-        )
-        .classList
-        .add("hidden");
-
-    renderCoupons();
-
-};
-
-document
-    .getElementById(
-        "cooldownBox"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "skipModal"
-        )
-        .classList
-        .remove("hidden");
-
-};
-
-document
-    .getElementById(
-        "closeSkipBtn"
-    )
-    .onclick = () => {
-
-    document
-        .getElementById(
-            "skipModal"
-        )
-        .classList
-        .add("hidden");
-
-};
+clearTimeout(
+holdTimer
+);
 
 });
 
+document
+.getElementById(
+"closeSpinBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"spinModal"
+)
+.classList
+.add("hidden");
+
+};
+
+document
+.getElementById(
+"startSpinBtn"
+)
+.onclick=startSpin;
+
+document
+.getElementById(
+"closeResultBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"resultModal"
+)
+.classList
+.add("hidden");
+
+};
+
+document
+.getElementById(
+"spinAgainBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"resultModal"
+)
+.classList
+.add("hidden");
+
+document
+.getElementById(
+"paymentModal"
+)
+.classList
+.remove("hidden");
+
+};
+
+document
+.getElementById(
+"backPaymentBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"paymentModal"
+)
+.classList
+.add("hidden");
+
+};
+
+document
+.getElementById(
+"cancelCouponBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"couponModal"
+)
+.classList
+.add("hidden");
+
+};
+
+document
+.getElementById(
+"useCouponBtn"
+)
+.onclick=()=>{
+
+if(
+usedCouponsLast24h()
+
+> =
+> DAILY_USE_LIMIT
+> ){
+
+alert(
+"Đã dùng tối đa 5 coupon trong 24 giờ."
+);
+
+return;
+
+}
+
+const data =
+loadData();
+
+data.coupons[
+selectedCouponIndex
+].status="used";
+
+data.coupons[
+selectedCouponIndex
+].usedAt=
+Date.now();
+
+saveData(data);
+
+document
+.getElementById(
+"couponModal"
+)
+.classList
+.add("hidden");
+
+showUsedPopup();
+
+renderCoupons();
+
+updateUsageInfo();
+
+updateStats();
+
+};
+
+document
+.getElementById(
+"cooldownBox"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"skipModal"
+)
+.classList
+.remove("hidden");
+
+};
+
+document
+.getElementById(
+"closeSkipBtn"
+)
+.onclick=()=>{
+
+document
+.getElementById(
+"skipModal"
+)
+.classList
+.add("hidden");
+
+};
+
+});
+
+const canvas =
+document.getElementById(
+"trailCanvas"
+);
+
+const ctx =
+canvas.getContext("2d");
+
+function resizeCanvas(){
+
+canvas.width =
+window.innerWidth;
+
+canvas.height =
+window.innerHeight;
+
+}
+
+resizeCanvas();
+
+window.addEventListener(
+"resize",
+resizeCanvas
+);
+
+const particles=[];
+
+function spawn(x,y){
+
+for(
+let i=0;
+i<3;
+i++
+){
+
+particles.push({
+
+x:
+x+
+(Math.random()-0.5)*10,
+
+y:
+y+
+(Math.random()-0.5)*10,
+
+size:
+6+
+Math.random()*8,
+
+alpha:1
+
+});
+
+}
+
+}
+
+document.addEventListener(
+"mousemove",
+e=>{
+
+spawn(
+e.clientX,
+e.clientY
+);
+
+});
+
+document.addEventListener(
+"touchmove",
+e=>{
+
+const t =
+e.touches[0];
+
+spawn(
+t.clientX,
+t.clientY
+);
+
+});
+
+function animate(){
+
+ctx.clearRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+for(
+let i=
+particles.length-1;
+i>=0;
+i--
+){
+
+const p=
+particles[i];
+
+ctx.beginPath();
+
+ctx.arc(
+p.x,
+p.y,
+p.size,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle=
+`rgba(
+120,
+220,
+255,
+${p.alpha}
+)`;
+
+ctx.fill();
+
+p.alpha-=0.03;
+
+p.size-=0.15;
+
+if(
+p.alpha<=0
+){
+
+particles.splice(
+i,
+1
+);
+
+}
+
+}
+
+requestAnimationFrame(
+animate
+);
+
+}
+
+animate();
