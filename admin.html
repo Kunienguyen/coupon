@@ -1,29 +1,58 @@
 <!DOCTYPE html>
+
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel</title>
+<title>Coupon Admin V2</title>
 
 <style>
-body{
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    background:#f5f7fb;
+}
+
+body{
+    background:#050505;
+    color:white;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
     padding:20px;
 }
 
 .card{
-    background:white;
-    border-radius:20px;
-    padding:20px;
+    width:100%;
     max-width:450px;
-    margin:auto;
-    box-shadow:0 6px 20px rgba(0,0,0,.1);
+    background:#111827;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:
+    0 10px 30px rgba(0,0,0,.4);
 }
 
 h1{
     text-align:center;
     margin-bottom:20px;
+}
+
+h2{
+    margin-bottom:10px;
+    text-align:center;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    margin-top:10px;
+    background:#1f2937;
+    color:white;
 }
 
 button{
@@ -36,82 +65,133 @@ button{
     font-size:16px;
 }
 
-.add{
+.green{
     background:#22c55e;
     color:white;
 }
 
-.reset{
+.red{
     background:#ef4444;
     color:white;
 }
 
-input{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #ddd;
-    margin-top:10px;
+.gray{
+    background:#374151;
+    color:white;
 }
 
 .hidden{
     display:none;
 }
+
+.info{
+    text-align:center;
+    margin-bottom:15px;
+    color:#d1d5db;
+}
+
 </style>
 
 </head>
+
 <body>
 
 <div class="card" id="loginBox">
 
-    <h1>🔒 Admin</h1>
+```
+<h1>🔒 Admin Login</h1>
 
-    <input
-        type="password"
-        id="password"
-        placeholder="Mật khẩu"
-    >
+<input
+    type="password"
+    id="password"
+    placeholder="Nhập mật khẩu">
 
-    <button class="add" onclick="login()">
-        Đăng nhập
-    </button>
+<button
+    class="green"
+    onclick="login()">
+
+    Đăng nhập
+
+</button>
+```
 
 </div>
 
-<div class="card hidden" id="adminPanel">
+<div
+class="card hidden"
+id="adminPanel">
 
-    <h1>🎁 Quản lý Spin</h1>
+```
+<h1>🎁 Coupon Admin</h1>
 
-    <h2 id="spinCount">
-        Bonus Spins: 0
-    </h2>
+<div
+class="info"
+id="spinCount">
 
-    <button class="add" onclick="addSpin(1)">
-        +1 Spin
-    </button>
+Bonus Spins: 0
 
-    <button class="add" onclick="addSpin(5)">
-        +5 Spins
-    </button>
+</div>
 
-    <button class="reset" onclick="resetCooldown()">
-        Reset Cooldown
-    </button>
+<button
+class="green"
+onclick="addSpin(1)">
+
++1 Spin
+
+</button>
+
+<button
+class="green"
+onclick="addSpin(5)">
+
++5 Spins
+
+</button>
+
+<button
+class="red"
+onclick="resetCooldown()">
+
+Reset Cooldown
+
+</button>
+
+<button
+class="red"
+onclick="clearAll()">
+
+Xóa toàn bộ dữ liệu
+
+</button>
+
+<button
+class="gray"
+onclick="logout()">
+
+Đăng xuất
+
+</button>
+```
 
 </div>
 
 <script>
 
-const PASSWORD = "CHANGE_ME";
+const PASSWORD =
+"DOI_MAT_KHAU_O_DAY";
 
 function loadData(){
 
     return JSON.parse(
-        localStorage.getItem("couponData")
+        localStorage.getItem(
+            "couponData"
+        )
     ) || {
+
         coupons: [],
         bonusSpins: 0,
         lastSpin: 0
+
     };
 
 }
@@ -127,36 +207,57 @@ function saveData(data){
 
 function updateView(){
 
-    const data = loadData();
+    const data =
+        loadData();
 
-    document.getElementById(
-        "spinCount"
-    ).textContent =
-    "Bonus Spins: " + data.bonusSpins;
+    document
+        .getElementById(
+            "spinCount"
+        )
+        .textContent =
+
+        "🎁 Bonus Spins: "
+        + data.bonusSpins +
+
+        " | Coupons: "
+        + data.coupons.length;
 
 }
 
 function login(){
 
     const pass =
-        document.getElementById(
+        document
+        .getElementById(
             "password"
-        ).value;
+        )
+        .value;
 
-    if(pass !== PASSWORD){
+    if(
+        pass !== PASSWORD
+    ){
 
-        alert("Sai mật khẩu");
+        alert(
+            "Sai mật khẩu"
+        );
 
         return;
+
     }
 
     document
-        .getElementById("loginBox")
-        .classList.add("hidden");
+        .getElementById(
+            "loginBox"
+        )
+        .classList
+        .add("hidden");
 
     document
-        .getElementById("adminPanel")
-        .classList.remove("hidden");
+        .getElementById(
+            "adminPanel"
+        )
+        .classList
+        .remove("hidden");
 
     updateView();
 
@@ -164,7 +265,8 @@ function login(){
 
 function addSpin(amount){
 
-    const data = loadData();
+    const data =
+        loadData();
 
     data.bonusSpins += amount;
 
@@ -173,16 +275,17 @@ function addSpin(amount){
     updateView();
 
     alert(
-        "Đã cộng " +
-        amount +
-        " spin"
+        "Đã cộng "
+        + amount
+        + " spin"
     );
 
 }
 
 function resetCooldown(){
 
-    const data = loadData();
+    const data =
+        loadData();
 
     data.lastSpin = 0;
 
@@ -191,6 +294,33 @@ function resetCooldown(){
     alert(
         "Đã reset cooldown"
     );
+
+}
+
+function clearAll(){
+
+    const ok =
+        confirm(
+            "Xóa toàn bộ dữ liệu?"
+        );
+
+    if(!ok) return;
+
+    localStorage.removeItem(
+        "couponData"
+    );
+
+    alert(
+        "Đã xóa dữ liệu"
+    );
+
+    location.reload();
+
+}
+
+function logout(){
+
+    location.reload();
 
 }
 
