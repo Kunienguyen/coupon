@@ -1,11 +1,11 @@
 const COUPONS = [
-"Lau nhà",
-"Hút bụi",
-"Rửa bát",
-"Phơi quần áo",
-"Dọn nhà",
-"Học bài",
-"Nấu cơm"
+    "Lau nhà",
+    "Hút bụi",
+    "Rửa bát",
+    "Phơi quần áo",
+    "Dọn nhà",
+    "Học bài",
+    "Nấu cơm"
 ];
 
 const EXPIRE_TIME = 72 * 60 * 60 * 1000;
@@ -14,915 +14,873 @@ const WARNING_TIME = 5 * 60 * 60 * 1000;
 const DAILY_USE_LIMIT = 5;
 
 let selectedCouponIndex = null;
-let holdTimer;
+let holdTimer = null;
 
-function loadData(){
+function loadData() {
 
-return JSON.parse(
-localStorage.getItem("couponData")
-) || {
+    return JSON.parse(
+        localStorage.getItem("couponData")
+    ) || {
 
-coupons: [],
-bonusSpins: 0,
-lastSpin: 0
+        coupons: [],
+        bonusSpins: 0,
+        lastSpin: 0
 
-};
-
-}
-
-function saveData(data){
-
-localStorage.setItem(
-"couponData",
-JSON.stringify(data)
-);
+    };
 
 }
 
-function formatTime(ms){
+function saveData(data) {
 
-let total =
-Math.floor(ms / 1000);
-
-const d =
-Math.floor(total / 86400);
-
-total %= 86400;
-
-const h =
-Math.floor(total / 3600);
-
-total %= 3600;
-
-const m =
-Math.floor(total / 60);
-
-if(d > 0){
-
-return `⏳ ${d} ngày ${h} giờ`;
+    localStorage.setItem(
+        "couponData",
+        JSON.stringify(data)
+    );
 
 }
 
-if(h > 0){
+function formatTime(ms) {
 
-return `⏳ ${h} giờ ${m} phút`;
+    let total =
+        Math.floor(ms / 1000);
 
-}
+    const d =
+        Math.floor(total / 86400);
 
-return `⚠️ ${m} phút`;
+    total %= 86400;
 
-}
+    const h =
+        Math.floor(total / 3600);
 
-function usedCouponsLast24h(){
+    total %= 3600;
 
-const data =
-loadData();
+    const m =
+        Math.floor(total / 60);
 
-const now =
-Date.now();
+    if (d > 0) {
+        return `⏳ ${d}d ${h}h`;
+    }
 
-return data.coupons.filter(c =>
+    if (h > 0) {
+        return `⏳ ${h}h ${m}m`;
+    }
 
-c.usedAt &&
-now - c.usedAt <
-24 * 60 * 60 * 1000
-
-).length;
-
-}
-
-function getCouponColor(coupon){
-
-if(
-coupon.status === "used"
-){
-
-return "gray";
+    return `⚠️ ${m}m`;
 
 }
 
-const left =
-coupon.expireAt -
-Date.now();
+function usedCouponsLast24h() {
 
-if(left <= 0){
+    const data =
+        loadData();
 
-return "red";
+    const now =
+        Date.now();
 
-}
+    return data.coupons.filter(c =>
 
-if(
-left <= WARNING_TIME
-){
+        c.usedAt &&
+        now - c.usedAt <
+        24 * 60 * 60 * 1000
 
-return "yellow";
-
-}
-
-return "green";
+    ).length;
 
 }
 
-function getCouponText(coupon){
+function getCouponColor(coupon) {
 
-if(
-coupon.status === "used"
-){
+    if (
+        coupon.status === "used"
+    ) {
+        return "gray";
+    }
 
-return "⚫ USED";
+    const left =
+        coupon.expireAt -
+        Date.now();
 
-}
+    if (left <= 0) {
+        return "red";
+    }
 
-const left =
-coupon.expireAt -
-Date.now();
+    if (left <= WARNING_TIME) {
+        return "yellow";
+    }
 
-if(left <= 0){
-
-return "🔴 EXPIRED";
-
-}
-
-return formatTime(left);
-
-}
-
-function updateUsageInfo(){
-
-const used =
-usedCouponsLast24h();
-
-document
-.getElementById(
-"usageInfo"
-)
-.textContent =
-
-`🎟️ Used Today: ${used} / ${DAILY_USE_LIMIT}`;
+    return "green";
 
 }
 
-function updateStats(){
+function getCouponText(coupon) {
 
-const data =
-loadData();
+    if (
+        coupon.status === "used"
+    ) {
+        return "⚫ USED";
+    }
 
-const total =
-data.coupons.length;
+    const left =
+        coupon.expireAt -
+        Date.now();
 
-const active =
-data.coupons.filter(c =>
+    if (left <= 0) {
+        return "🔴 EXPIRED";
+    }
 
-c.status !== "used" &&
-c.expireAt > Date.now()
-
-).length;
-
-const used =
-data.coupons.filter(c =>
-
-c.status === "used"
-
-).length;
-
-const expired =
-data.coupons.filter(c =>
-
-c.status !== "used" &&
-c.expireAt <= Date.now()
-
-).length;
-
-document
-.getElementById(
-"totalCoupons"
-)
-.textContent = total;
-
-document
-.getElementById(
-"activeCoupons"
-)
-.textContent = active;
-
-document
-.getElementById(
-"usedCoupons"
-)
-.textContent = used;
-
-document
-.getElementById(
-"expiredCoupons"
-)
-.textContent = expired;
-
-}
-function renderCoupons(){
-
-const data =
-loadData();
-
-const container =
-document.getElementById(
-"couponContainer"
-);
-
-container.innerHTML = "";
-
-data.coupons.forEach(
-(coupon,index)=>{
-
-const card =
-document.createElement("div");
-
-card.className =
-`coupon ${getCouponColor(coupon)}`;
-
-card.innerHTML = `
-
-<h3>${coupon.name}</h3>
-<p>${getCouponText(coupon)}</p>
-`;
-
-card.onclick = ()=>{
-
-if(
-coupon.status === "used" ||
-coupon.expireAt <= Date.now()
-){
-return;
-}
-
-selectedCouponIndex =
-index;
-
-document
-.getElementById(
-"couponName"
-)
-.textContent =
-coupon.name;
-
-document
-.getElementById(
-"couponModal"
-)
-.classList
-.remove("hidden");
-
-};
-
-container.appendChild(card);
-
-});
+    return formatTime(left);
 
 }
 
-function canSpin(){
+function updateUsageInfo() {
 
-const data =
-loadData();
+    const used =
+        usedCouponsLast24h();
 
-if(
-data.bonusSpins > 0
-){
-return true;
-}
+    const el =
+        document.getElementById(
+            "usageInfo"
+        );
 
-return (
-Date.now() -
-data.lastSpin
+    if (el) {
 
-> =
-> FREE_SPIN_TIME
-> );
+        el.textContent =
+            `🎟️ Used Today: ${used} / ${DAILY_USE_LIMIT}`;
+
+    }
 
 }
 
-function startSpin(){
+function updateStats() {
 
-if(!canSpin()){
+    const data =
+        loadData();
 
-alert(
-"Chưa đến thời gian quay."
-);
+    const total =
+        data.coupons.length;
 
-return;
+    const active =
+        data.coupons.filter(c =>
 
-}
+            c.status !== "used" &&
+            c.expireAt > Date.now()
 
-const spinAnim =
-document.getElementById(
-"spinAnimation"
-);
+        ).length;
 
-spinAnim.innerHTML = `
+    const used =
+        data.coupons.filter(c =>
 
-<div>🎁</div>
-<div style="
-font-size:18px;
-margin-top:10px;
-">
-SPINNING...
-</div>
-`;
+            c.status === "used"
 
-document
-.getElementById(
-"startSpinBtn"
-)
-.disabled = true;
+        ).length;
 
-setTimeout(()=>{
+    const expired =
+        data.coupons.filter(c =>
 
-const result =
-COUPONS[
-Math.floor(
-Math.random()
-*
-COUPONS.length
-)
-];
+            c.status !== "used" &&
+            c.expireAt <= Date.now()
 
-const data =
-loadData();
+        ).length;
 
-if(
-data.bonusSpins > 0
-){
+    document.getElementById(
+        "totalCoupons"
+    ).textContent = total;
 
-data.bonusSpins--;
+    document.getElementById(
+        "activeCoupons"
+    ).textContent = active;
 
-}else{
+    document.getElementById(
+        "usedCoupons"
+    ).textContent = used;
 
-data.lastSpin =
-Date.now();
+    document.getElementById(
+        "expiredCoupons"
+    ).textContent = expired;
 
 }
 
-data.coupons.unshift({
+function renderCoupons() {
 
-name:result,
+    const data =
+        loadData();
 
-status:"active",
+    const container =
+        document.getElementById(
+            "couponContainer"
+        );
 
-createdAt:
-Date.now(),
+    if (!container) return;
 
-expireAt:
-Date.now()
-+
-EXPIRE_TIME
+    container.innerHTML = "";
 
-});
+    data.coupons.forEach(
+        (coupon, index) => {
 
-saveData(data);
+            const card =
+                document.createElement(
+                    "div"
+                );
 
-const win =
-document.getElementById(
-"winSound"
-);
+            card.className =
+                `coupon ${getCouponColor(coupon)}`;
 
-if(win){
+            card.innerHTML = `
+                <h3>${coupon.name}</h3>
+                <p>${getCouponText(coupon)}</p>
+            `;
 
-win.currentTime = 0;
+            card.onclick = () => {
 
-win.play()
-.catch(()=>{});
+                if (
+                    coupon.status === "used" ||
+                    coupon.expireAt <= Date.now()
+                ) {
+                    return;
+                }
 
-}
+                selectedCouponIndex =
+                    index;
 
-document
-.getElementById(
-"spinModal"
-)
-.classList
-.add("hidden");
+                document
+                    .getElementById(
+                        "couponName"
+                    )
+                    .textContent =
+                    coupon.name;
 
-document
-.getElementById(
-"resultModal"
-)
-.classList
-.remove("hidden");
+                document
+                    .getElementById(
+                        "couponModal"
+                    )
+                    .classList
+                    .remove("hidden");
 
-document
-.getElementById(
-"resultCoupon"
-)
-.textContent =
-result;
+            };
 
-document
-.getElementById(
-"resultExpire"
-)
-.textContent =
-"Expires in 3 days";
+            container.appendChild(card);
 
-document
-.getElementById(
-"startSpinBtn"
-)
-.disabled = false;
-
-renderCoupons();
-
-updateStats();
-
-},5000);
+        }
+    );
 
 }
 
-function updateCooldown(){
+function canSpin() {
 
-const data =
-loadData();
+    const data =
+        loadData();
 
-const box =
-document.getElementById(
-"cooldownText"
-);
+    if (
+        data.bonusSpins > 0
+    ) {
+        return true;
+    }
 
-if(
-data.bonusSpins > 0
-){
+    return (
+        Date.now() -
+        data.lastSpin >=
+        FREE_SPIN_TIME
+    );
 
-box.textContent =
-`🎁 Bonus Spins: ${data.bonusSpins}`;
+}function startSpin() {
 
-return;
+    if (!canSpin()) {
+
+        alert("Chưa đến thời gian quay.");
+
+        return;
+
+    }
+
+    const spinAnim =
+        document.getElementById(
+            "spinAnimation"
+        );
+
+    spinAnim.innerHTML = `
+        <div>🎁</div>
+        <div style="font-size:18px;margin-top:10px;">
+            SPINNING...
+        </div>
+    `;
+
+    document
+        .getElementById(
+            "startSpinBtn"
+        )
+        .disabled = true;
+
+    setTimeout(() => {
+
+        const result =
+            COUPONS[
+                Math.floor(
+                    Math.random()
+                    * COUPONS.length
+                )
+            ];
+
+        const data =
+            loadData();
+
+        if (
+            data.bonusSpins > 0
+        ) {
+
+            data.bonusSpins--;
+
+        } else {
+
+            data.lastSpin =
+                Date.now();
+
+        }
+
+        data.coupons.unshift({
+
+            name: result,
+            status: "active",
+
+            createdAt:
+                Date.now(),
+
+            expireAt:
+                Date.now()
+                + EXPIRE_TIME
+
+        });
+
+        saveData(data);
+
+        const win =
+            document.getElementById(
+                "winSound"
+            );
+
+        if (win) {
+
+            win.currentTime = 0;
+
+            win.play()
+                .catch(() => {});
+
+        }
+
+        document
+            .getElementById(
+                "spinModal"
+            )
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById(
+                "resultModal"
+            )
+            .classList
+            .remove("hidden");
+
+        document
+            .getElementById(
+                "resultCoupon"
+            )
+            .textContent =
+            result;
+
+        document
+            .getElementById(
+                "resultExpire"
+            )
+            .textContent =
+            "Expires in 3 days";
+
+        document
+            .getElementById(
+                "startSpinBtn"
+            )
+            .disabled = false;
+
+        renderCoupons();
+
+        updateStats();
+
+    }, 5000);
 
 }
 
-const left =
-FREE_SPIN_TIME -
-(
-Date.now()
-----------
+function updateCooldown() {
 
-data.lastSpin
-);
+    const data =
+        loadData();
 
-if(left <= 0){
+    const box =
+        document.getElementById(
+            "cooldownText"
+        );
 
-box.textContent =
-"🎁 Free Spin Ready";
+    if (!box) return;
 
-return;
+    if (
+        data.bonusSpins > 0
+    ) {
+
+        box.textContent =
+            `🎁 Bonus Spins: ${data.bonusSpins}`;
+
+        return;
+
+    }
+
+    const left =
+        FREE_SPIN_TIME -
+        (
+            Date.now()
+            - data.lastSpin
+        );
+
+    if (left <= 0) {
+
+        box.textContent =
+            "🎁 Free Spin Ready";
+
+        return;
+
+    }
+
+    let total =
+        Math.floor(left / 1000);
+
+    const h =
+        Math.floor(total / 3600);
+
+    total %= 3600;
+
+    const m =
+        Math.floor(total / 60);
+
+    const s =
+        total % 60;
+
+    box.textContent =
+        `⏳ ${h}h ${m}m ${s}s`;
+
+}
+
+function showUsedPopup() {
+
+    const popup =
+        document.getElementById(
+            "usedPopup"
+        );
+
+    if (!popup) return;
+
+    popup.classList.remove(
+        "hidden"
+    );
+
+    setTimeout(() => {
+
+        popup.classList.add(
+            "hidden"
+        );
+
+    }, 1200);
 
 }
 
-let total =
-Math.floor(
-left/1000
-);
-
-const h =
-Math.floor(
-total/3600
-);
-
-total%=3600;
-
-const m =
-Math.floor(
-total/60
-);
-
-const s =
-total%60;
-
-box.textContent =
-`⏳ ${h}h ${m}m ${s}s`;
-
-}
-
-function showUsedPopup(){
-
-const popup =
-document.getElementById(
-"usedPopup"
-);
-
-popup.classList.remove(
-"hidden"
-);
-
-setTimeout(()=>{
-
-popup.classList.add(
-"hidden"
-);
-
-},1200);
-
-}
 document.addEventListener(
 "DOMContentLoaded",
-()=>{
+() => {
 
-renderCoupons();
+    renderCoupons();
 
-updateCooldown();
+    updateCooldown();
 
-updateUsageInfo();
+    updateUsageInfo();
 
-updateStats();
+    updateStats();
 
-setInterval(()=>{
+    setInterval(() => {
 
-renderCoupons();
+        renderCoupons();
 
-updateCooldown();
+        updateCooldown();
 
-updateUsageInfo();
+        updateUsageInfo();
 
-updateStats();
+        updateStats();
 
-},1000);
+    }, 1000);
 
-const clickSound =
-document.getElementById(
-"clickSound"
-);
+    const clickSound =
+        document.getElementById(
+            "clickSound"
+        );
 
-document
-.querySelectorAll("button")
-.forEach(btn=>{
+    document
+        .querySelectorAll("button")
+        .forEach(btn => {
 
-btn.addEventListener(
-"click",
-()=>{
+            btn.addEventListener(
+                "click",
+                () => {
 
-if(clickSound){
+                    if (
+                        clickSound
+                    ) {
 
-clickSound.currentTime=0;
+                        clickSound.currentTime = 0;
 
-clickSound.play()
-.catch(()=>{});
+                        clickSound.play()
+                            .catch(() => {});
 
-}
+                    }
+
+                }
+            );
+
+        });
+
+    const btn =
+        document.getElementById(
+            "floatingBtn"
+        );
+
+    btn.onclick = () => {
+
+        document
+            .getElementById(
+                "spinModal"
+            )
+            .classList
+            .remove("hidden");
+
+    };
+
+    btn.addEventListener(
+        "touchstart",
+        () => {
+
+            holdTimer =
+                setTimeout(() => {
+
+                    location.href =
+                        "admin.html";
+
+                }, 3000);
+
+        }
+    );
+
+    btn.addEventListener(
+        "touchend",
+        () => {
+
+            clearTimeout(
+                holdTimer
+            );
+
+        }
+    );
+
+    document.getElementById(
+        "closeSpinBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "spinModal"
+            )
+            .classList
+            .add("hidden");
+
+    };
+
+    document.getElementById(
+        "startSpinBtn"
+    ).onclick =
+    startSpin;
+
+    document.getElementById(
+        "closeResultBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "resultModal"
+            )
+            .classList
+            .add("hidden");
+
+    };
+
+    document.getElementById(
+        "spinAgainBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "resultModal"
+            )
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById(
+                "paymentModal"
+            )
+            .classList
+            .remove("hidden");
+
+    };
+
+    document.getElementById(
+        "backPaymentBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "paymentModal"
+            )
+            .classList
+            .add("hidden");
+
+    };
+
+    document.getElementById(
+        "cancelCouponBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "couponModal"
+            )
+            .classList
+            .add("hidden");
+
+    };
+
+    document.getElementById(
+        "useCouponBtn"
+    ).onclick = () => {
+
+        if (
+            usedCouponsLast24h()
+            >= DAILY_USE_LIMIT
+        ) {
+
+            alert(
+                "Đã dùng tối đa 5 coupon trong 24 giờ."
+            );
+
+            return;
+
+        }
+
+        const data =
+            loadData();
+
+        data.coupons[
+            selectedCouponIndex
+        ].status = "used";
+
+        data.coupons[
+            selectedCouponIndex
+        ].usedAt =
+            Date.now();
+
+        saveData(data);
+
+        document
+            .getElementById(
+                "couponModal"
+            )
+            .classList
+            .add("hidden");
+
+        showUsedPopup();
+
+        renderCoupons();
+
+        updateUsageInfo();
+
+        updateStats();
+
+    };
+
+    document.getElementById(
+        "cooldownBox"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "skipModal"
+            )
+            .classList
+            .remove("hidden");
+
+    };
+
+    document.getElementById(
+        "closeSkipBtn"
+    ).onclick = () => {
+
+        document
+            .getElementById(
+                "skipModal"
+            )
+            .classList
+            .add("hidden");
+
+    };
 
 });
 
-});
-
-const btn =
-document.getElementById(
-"floatingBtn"
-);
-
-btn.onclick=()=>{
-
-document
-.getElementById(
-"spinModal"
-)
-.classList
-.remove("hidden");
-
-};
-
-btn.addEventListener(
-"touchstart",
-()=>{
-
-holdTimer =
-setTimeout(()=>{
-
-location.href =
-"admin.html";
-
-},3000);
-
-});
-
-btn.addEventListener(
-"touchend",
-()=>{
-
-clearTimeout(
-holdTimer
-);
-
-});
-
-document
-.getElementById(
-"closeSpinBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"spinModal"
-)
-.classList
-.add("hidden");
-
-};
-
-document
-.getElementById(
-"startSpinBtn"
-)
-.onclick=startSpin;
-
-document
-.getElementById(
-"closeResultBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"resultModal"
-)
-.classList
-.add("hidden");
-
-};
-
-document
-.getElementById(
-"spinAgainBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"resultModal"
-)
-.classList
-.add("hidden");
-
-document
-.getElementById(
-"paymentModal"
-)
-.classList
-.remove("hidden");
-
-};
-
-document
-.getElementById(
-"backPaymentBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"paymentModal"
-)
-.classList
-.add("hidden");
-
-};
-
-document
-.getElementById(
-"cancelCouponBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"couponModal"
-)
-.classList
-.add("hidden");
-
-};
-
-document
-.getElementById(
-"useCouponBtn"
-)
-.onclick=()=>{
-
-if(
-usedCouponsLast24h()
-
-> =
-> DAILY_USE_LIMIT
-> ){
-
-alert(
-"Đã dùng tối đa 5 coupon trong 24 giờ."
-);
-
-return;
-
-}
-
-const data =
-loadData();
-
-data.coupons[
-selectedCouponIndex
-].status="used";
-
-data.coupons[
-selectedCouponIndex
-].usedAt=
-Date.now();
-
-saveData(data);
-
-document
-.getElementById(
-"couponModal"
-)
-.classList
-.add("hidden");
-
-showUsedPopup();
-
-renderCoupons();
-
-updateUsageInfo();
-
-updateStats();
-
-};
-
-document
-.getElementById(
-"cooldownBox"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"skipModal"
-)
-.classList
-.remove("hidden");
-
-};
-
-document
-.getElementById(
-"closeSkipBtn"
-)
-.onclick=()=>{
-
-document
-.getElementById(
-"skipModal"
-)
-.classList
-.add("hidden");
-
-};
-
-});
+/* Blue Archive trail */
 
 const canvas =
 document.getElementById(
-"trailCanvas"
+    "trailCanvas"
 );
 
-const ctx =
-canvas.getContext("2d");
+if (canvas) {
 
-function resizeCanvas(){
+    const ctx =
+        canvas.getContext("2d");
 
-canvas.width =
-window.innerWidth;
+    function resizeCanvas() {
 
-canvas.height =
-window.innerHeight;
+        canvas.width =
+            window.innerWidth;
+
+        canvas.height =
+            window.innerHeight;
+
+    }
+
+    resizeCanvas();
+
+    window.addEventListener(
+        "resize",
+        resizeCanvas
+    );
+
+    const particles = [];
+
+    function spawn(x, y) {
+
+        for (
+            let i = 0;
+            i < 3;
+            i++
+        ) {
+
+            particles.push({
+
+                x:
+                    x +
+                    (Math.random() - 0.5) * 10,
+
+                y:
+                    y +
+                    (Math.random() - 0.5) * 10,
+
+                size:
+                    5 +
+                    Math.random() * 8,
+
+                alpha: 1
+
+            });
+
+        }
+
+    }
+
+    document.addEventListener(
+        "mousemove",
+        e => {
+
+            spawn(
+                e.clientX,
+                e.clientY
+            );
+
+        }
+    );
+
+    document.addEventListener(
+        "touchmove",
+        e => {
+
+            const t =
+                e.touches[0];
+
+            spawn(
+                t.clientX,
+                t.clientY
+            );
+
+        }
+    );
+
+    function animate() {
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (
+            let i =
+            particles.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const p =
+                particles[i];
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                p.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle =
+                `rgba(120,220,255,${p.alpha})`;
+
+            ctx.fill();
+
+            p.alpha -= 0.03;
+
+            p.size -= 0.15;
+
+            if (
+                p.alpha <= 0
+            ) {
+
+                particles.splice(
+                    i,
+                    1
+                );
+
+            }
+
+        }
+
+        requestAnimationFrame(
+            animate
+        );
+
+    }
+
+    animate();
 
 }
-
-resizeCanvas();
-
-window.addEventListener(
-"resize",
-resizeCanvas
-);
-
-const particles=[];
-
-function spawn(x,y){
-
-for(
-let i=0;
-i<3;
-i++
-){
-
-particles.push({
-
-x:
-x+
-(Math.random()-0.5)*10,
-
-y:
-y+
-(Math.random()-0.5)*10,
-
-size:
-6+
-Math.random()*8,
-
-alpha:1
-
-});
-
-}
-
-}
-
-document.addEventListener(
-"mousemove",
-e=>{
-
-spawn(
-e.clientX,
-e.clientY
-);
-
-});
-
-document.addEventListener(
-"touchmove",
-e=>{
-
-const t =
-e.touches[0];
-
-spawn(
-t.clientX,
-t.clientY
-);
-
-});
-
-function animate(){
-
-ctx.clearRect(
-0,
-0,
-canvas.width,
-canvas.height
-);
-
-for(
-let i=
-particles.length-1;
-i>=0;
-i--
-){
-
-const p=
-particles[i];
-
-ctx.beginPath();
-
-ctx.arc(
-p.x,
-p.y,
-p.size,
-0,
-Math.PI*2
-);
-
-ctx.fillStyle=
-`rgba(
-120,
-220,
-255,
-${p.alpha}
-)`;
-
-ctx.fill();
-
-p.alpha-=0.03;
-
-p.size-=0.15;
-
-if(
-p.alpha<=0
-){
-
-particles.splice(
-i,
-1
-);
-
-}
-
-}
-
-requestAnimationFrame(
-animate
-);
-
-}
-
-animate();
